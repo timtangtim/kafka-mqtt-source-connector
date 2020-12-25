@@ -11,6 +11,8 @@ import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import javax.net.ssl.SSLSocketFactory;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +20,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.time.ZonedDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 import org.bson.Document;
@@ -153,20 +154,34 @@ public class MqttSourceConnectorTask extends SourceTask implements MqttCallback 
     }
 
     private String makeDBDoc(byte[] payload, String topic) {
-      String msg = new String(payload);
-      Document message = Document.parse(msg);
-      Document doc = new Document();
-      List<String> topicArr = Arrays.asList(topic.split("/"));
-    //   Long unique_id = Long.parseLong(topicArr.get(21));
-    //   Long quadkey = Long.parseLong(String.join("",topicArr.subList(2,20)));
-      String now = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
-      Document dt = new Document();
-      dt.put("$date",now);
-      doc.put("message",message);
-    //   doc.put("unique_id",unique_id);
-    //   doc.put("quadkey",quadkey);
-      doc.put("updateDate",dt);
-      doc.put("pushed",false);
-      return doc.toJson();
+
+
+        ByteArrayInputStream input = new ByteArrayInputStream(payload);
+
+        // 反序列化
+        Data.DeviceMessage data = null;
+        try {
+            data = Data.DeviceMessage.parseFrom(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<Data.SensorData> sensorDatas = data.getDataList();
+        for (Data.SensorData sensorData : sensorDatas) {
+            logger.debug("data: " + sensorData.getSensorId() + "  detail: " + sensorData.getSensorData());
+        }
+
+        Document doc = new Document();
+        List<String> topicArr = Arrays.asList(topic.split("/"));
+        //   Long unique_id = Long.parseLong(topicArr.get(21));
+        //   Long quadkey = Long.parseLong(String.join("",topicArr.subList(2,20)));
+        String now = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+        Document dt = new Document();
+        dt.put("$date", now);
+        doc.put("data", sensorDatas);
+        //   doc.put("unique_id",unique_id);
+        //   doc.put("quadkey",quadkey);
+        doc.put("updateDate", dt);
+        doc.put("pushed", false);
+        return doc.toJson();
     }
 }

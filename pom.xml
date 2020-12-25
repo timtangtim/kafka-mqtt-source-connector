@@ -6,7 +6,7 @@
 
     <groupId>com.sintef.asam</groupId>
     <artifactId>kafka-mqtt-source-connector</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <developers>
@@ -87,6 +87,11 @@
             <groupId>org.mongodb</groupId>
             <artifactId>bson</artifactId>
             <version>4.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.14.0</version>
         </dependency>
     </dependencies>
 
