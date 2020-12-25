@@ -1,4 +1,4 @@
-package com.sintef.asam;
+package com.projectx.kafka.connector;
 
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;

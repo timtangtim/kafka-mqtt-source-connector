@@ -1,4 +1,4 @@
-package com.sintef.asam.util;
+package com.projectx.kafka.connector.ssl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

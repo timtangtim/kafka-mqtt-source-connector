@@ -1,6 +1,6 @@
-package com.sintef.asam;
+package com.projectx.kafka.connector;
 
-import com.sintef.asam.util.Version;
+import com.projectx.kafka.connector.ssl.Version;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.source.SourceConnector;

@@ -85,7 +85,7 @@ plugin.path=/usr/share/java,/usr/local/share/kafka/plugins,/usr/local/share/java
 ```
 name=mqtt-source-connector
 tasks.max=1
-connector.class=com.sintef.asam.MqttSourceConnector
+connector.class=com.projectx.kafka.connector.MqttSourceConnector
 mqtt.connector.broker.uri=tcp://0.0.0.0:1883
 mqtt.connector.broker.topic=test/#
 mqtt.conncetor.kafka.topic=test
@@ -114,7 +114,7 @@ which will help one to avoid some "bind" exceptions. This will be the port for t
 ```
 7. Start our connector by posting the following command to the Connect REST-interface:
 ```
-curl -s -X POST -H 'Content-Type: application/json' http://127.0.0.1:19005/connectors -d '{"name":"mqtt-source-connector","config":{"connector.class":"com.sintef.asam.MqttSourceConnector","tasks.max":"1","mqtt.connector.broker.uri":"tcp://localhost:1883", "mqtt.connector.broker.topic":"test/#","mqtt.connector.kafka.topic":"test"}}'
+curl -s -X POST -H 'Content-Type: application/json' http://127.0.0.1:19005/connectors -d '{"name":"mqtt-source-connector","config":{"connector.class":"com.projectx.kafka.connector.MqttSourceConnector","tasks.max":"1","mqtt.connector.broker.uri":"tcp://localhost:1883", "mqtt.connector.broker.topic":"test/#","mqtt.connector.kafka.topic":"test"}}'
 ```
 8. Inspect the terminal where you started Conncet Distributed, and after the connector seem to have successfully started, check the existence by typing:
 ```
@@ -159,7 +159,7 @@ curl 'Content-Type: application/json' http://127.0.0.1:19005/connectors
 13. Copy your CA certificate, client certificate and client key to desired directory. In our test case we have the full paths `/home/ca.crt`, `/home/client.crt` and `/home/client.key`.
 14. Start our connector by posting the following command to the Connect REST-interface:
 ```
-curl -s -X POST -H 'Content-Type: application/json' http://127.0.0.1:19005/connectors -d '{"name":"mqtt-source-connector","config":{"connector.class":"com.sintef.asam.MqttSourceConnector","tasks.max":"1","mqtt.connector.broker.uri":"ssl://localhost:8883", "mqtt.connector.broker.topic":"test/#", "mqtt.connector.kafka.topic":"test","mqtt.connector.ssl":true, "mqtt.connector.ssl.ca":"/home/ca.crt/","mqtt.connector.ssl.crt":"/home/client.crt","mqtt.connector.ssl.key":"/home/client.key"}}'
+curl -s -X POST -H 'Content-Type: application/json' http://127.0.0.1:19005/connectors -d '{"name":"mqtt-source-connector","config":{"connector.class":"com.projectx.kafka.connector.MqttSourceConnector","tasks.max":"1","mqtt.connector.broker.uri":"ssl://localhost:8883", "mqtt.connector.broker.topic":"test/#", "mqtt.connector.kafka.topic":"test","mqtt.connector.ssl":true, "mqtt.connector.ssl.ca":"/home/ca.crt/","mqtt.connector.ssl.crt":"/home/client.crt","mqtt.connector.ssl.key":"/home/client.key"}}'
 ```
 15. Test the connector by making a Kafka Consumer subscribing to the topic `test`:
 ```

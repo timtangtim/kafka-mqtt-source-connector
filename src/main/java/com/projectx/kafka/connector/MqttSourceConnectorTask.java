@@ -1,7 +1,8 @@
-package com.sintef.asam;
+package com.projectx.kafka.connector;
 
-import com.sintef.asam.util.SSLUtils;
-import com.sintef.asam.util.Version;
+
+import com.projectx.kafka.connector.ssl.SSLUtils;
+import com.projectx.kafka.connector.ssl.Version;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
@@ -9,6 +10,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import javax.net.ssl.SSLSocketFactory;
 import java.util.ArrayList;
@@ -21,7 +24,8 @@ import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
-import org.bson.Document;
+import static org.apache.logging.log4j.message.MapMessage.MapFormat.JSON;
+
 
 public class MqttSourceConnectorTask extends SourceTask implements MqttCallback {
 
@@ -34,6 +38,7 @@ public class MqttSourceConnectorTask extends SourceTask implements MqttCallback 
     private SSLSocketFactory sslSocketFactory;
     BlockingQueue<SourceRecord> mqttRecordQueue = new LinkedBlockingQueue<SourceRecord>();
     private static final Logger logger = LogManager.getLogger(MqttSourceConnectorTask.class);
+    JSONParser jsonParser=new JSONParser();
 
     private void initMqttClient() {
 
@@ -119,9 +124,6 @@ public class MqttSourceConnectorTask extends SourceTask implements MqttCallback 
         logger.debug("Mqtt message arrived to connector: '{}', running client: '{}', on topic: '{}'.", connectorName, mqttClientId, tempMqttTopic);
         try {
             logger.debug("Mqtt message payload in byte array: '{}'", mqttMessage.getPayload());
-            //mqttRecordQueue.put(new SourceRecord(null, null, kafkaTopic, null,
-            //        Schema.STRING_SCHEMA, addTopicToJSONByteArray(mqttMessage.getPayload(), tempMqttTopic))
-            //);
             mqttRecordQueue.put(new SourceRecord(null, null, kafkaTopic, null,
                     Schema.STRING_SCHEMA, makeDBDoc(mqttMessage.getPayload(), tempMqttTopic))
             );
@@ -136,37 +138,26 @@ public class MqttSourceConnectorTask extends SourceTask implements MqttCallback 
 
     }
 
-    private byte[] addTopicToJSONByteArray(byte[] bytes, String topic) {
-        String topicAsJSON = ",\"topic\":\""+topic+"\"}";
-        int byteslen = bytes.length-1;
-        int topiclen = topicAsJSON.length();
-        logger.debug("New topic: '{}', for publishing by connector: '{}'", topicAsJSON, connectorName);
-        byte[] byteArrayWithTopic = new byte[byteslen+topiclen];
-        for (int i = 0; i < byteslen; i++) {
-            byteArrayWithTopic[i] = bytes[i];
-        }
-        for (int i = 0; i < topiclen; i++) {
-            byteArrayWithTopic[byteslen+i] = (byte) topicAsJSON.charAt(i);
-        }
-        logger.debug("New payload with topic key/value, as ascii array: '{}'", byteArrayWithTopic);
-        return byteArrayWithTopic;
-    }
-
     private String makeDBDoc(byte[] payload, String topic) {
-      String msg = new String(payload);
-      Document message = Document.parse(msg);
-      Document doc = new Document();
-      List<String> topicArr = Arrays.asList(topic.split("/"));
-    //   Long unique_id = Long.parseLong(topicArr.get(21));
-    //   Long quadkey = Long.parseLong(String.join("",topicArr.subList(2,20)));
-      String now = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
-      Document dt = new Document();
-      dt.put("$date",now);
-      doc.put("message",message);
-    //   doc.put("unique_id",unique_id);
-    //   doc.put("quadkey",quadkey);
-      doc.put("updateDate",dt);
-      doc.put("pushed",false);
-      return doc.toJson();
+        String msg = new String(payload);
+
+        JSONObject message;
+
+        try {
+            message = (JSONObject) jsonParser.parse(msg);
+        } catch (org.json.simple.parser.ParseException e) {
+            e.printStackTrace();
+            message = new JSONObject();
+        }
+
+
+        String now = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+
+        JSONObject processedDate = new JSONObject();
+        processedDate.put("topic", topic);
+        processedDate.put("message", message);
+        processedDate.put("process_date", now);
+
+        return processedDate.toJSONString();
     }
 }

@@ -1,4 +1,4 @@
-package com.sintef.asam.util;
+package com.projectx.kafka.connector.ssl;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMDecryptorProvider;
